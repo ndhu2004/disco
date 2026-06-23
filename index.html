@@ -183,6 +183,11 @@
     text-align:center; color:rgba(255,255,255,.4); font-size:11px;
     padding-bottom:4px; z-index:0; pointer-events:none;
   }
+  :fullscreen #status,
+  :-webkit-full-screen #status,
+  :-moz-full-screen #status{
+    display:none;
+  }
 
   #permOverlay{
     position:fixed; inset:0; background:rgba(0,0,0,.85);
