@@ -428,15 +428,32 @@
     }
   }
 
+  let youtubeWindowId = null;
+
   async function enableSpeakerCapture(){
     if(!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){
       micErrored = true;
       micBtnText.textContent = 'Speaker capture not supported';
       return;
     }
+
+    // Open YouTube if not already open
+    if(!youtubeWindowId){
+      const youtubeWin = window.open('https://www.youtube.com', 'DiscoYouTube', 'width=800,height=600');
+      if(youtubeWin){
+        youtubeWindowId = youtubeWin;
+        micBtnText.textContent = 'Play music on YouTube, then tap again';
+        setTimeout(()=>{ enableSpeakerCapture(); }, 1500);
+        return;
+      }
+    }
+
     try{
+      micBtnText.textContent = 'Requesting screen share...';
       const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
+        video: { 
+          displaySurface: 'monitor'
+        },
         audio: {
           echoCancellation: false,
           noiseSuppression: false,
@@ -446,14 +463,18 @@
       if(!stream.getAudioTracks().length){
         stream.getTracks().forEach(track => track.stop());
         micErrored = true;
-        micBtnText.textContent = 'No system audio selected';
+        micBtnText.textContent = 'No audio in selection - select YouTube tab';
         return;
       }
       startAudioGraph(stream);
       micErrored = false;
     }catch(err){
       micErrored = true;
-      micBtnText.textContent = 'Speaker capture blocked';
+      if(err.name === 'NotAllowedError'){
+        micBtnText.textContent = 'Share cancelled - tap to retry';
+      } else {
+        micBtnText.textContent = 'Speaker capture failed';
+      }
       console.warn('Speaker capture error:', err);
     }
   }
